@@ -1,9 +1,13 @@
 var express = require('express');
 var router = express.Router();
+const homeRoute = require('./homeRoute');
+const walletRoute = require('./walletRoute');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+// home
+router.use('/', homeRoute);
+
+// wallet
+router.use('/wallet', walletRoute);
+
 
 module.exports = router;
