@@ -1,5 +1,5 @@
 function getHomePage(req, res){
-    res.send('home page');
+    res.render("index")
 }
 
 module.exports = {

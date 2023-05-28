@@ -1,5 +1,5 @@
 function getWalletPage(req, res){
-    res.send('wallet page');
+    res.render('wallet');
 }
 
 module.exports = {
