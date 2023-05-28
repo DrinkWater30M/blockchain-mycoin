@@ -1,10 +1,83 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title>{{title}}</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://kit.fontawesome.com/9e26d2c6bf.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
   </head>
   <body>
-    {{{body}}}
+    <div class="container">
+      <div class="header">
+        <div class="logo">
+          <a href="/">
+            <i class="fa-solid fa-coins"></i>
+            <span>My Coin</span>
+          </a>
+        </div>
+        <div class="left-header">
+          <div class="notification">
+            <a href="#">
+              <i class="fa-solid fa-bell"></i>
+            </a>
+          </div>
+          <div class="account">
+            <a href="#">
+              <i class="fa-regular fa-circle-user"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="nav">
+          <div class="item">
+            <a href="/wallet">
+              <i class="fa-solid fa-wallet"></i>
+              <span>Wallet</span>
+            </a>
+          </div>
+          <div class="item">
+            <a href="/store">
+              <i class="fa-solid fa-store"></i>
+              <span>Buy Coin</span>
+            </a>
+          </div>
+          <div class="item">
+            <a href="/exchange">
+              <i class="fa-solid fa-handshake"></i>
+              <span>Exchange Coin</span>
+            </a>
+          </div>
+          <div class="item">
+            <a href="/history">
+              <i class="fa-solid fa-money-bill-trend-up"></i>
+              <span>History</span>
+            </a>
+          </div>
+        </div>
+        <div class="main-content">
+          {{{body}}}
+        </div>
+      </div>
+    </div>
+    <script>
+      // update ui by url
+      function navActive(){
+        const path = window.location.href;
+        const tabs = document.querySelectorAll('.nav .item');
+        for(let i = 0; i < tabs.length; i++){
+            if(tabs[i].querySelector('a').href == path){
+              tabs[i].classList.add('active');
+              return;
+            }
+        }
+      }
+      navActive();
+    </script>
   </body>
 </html>
