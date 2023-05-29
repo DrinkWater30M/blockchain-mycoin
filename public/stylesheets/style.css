@@ -16,7 +16,7 @@ body {
   align-items: start;
 }
 
-.container{
+.main-section{
   width: 100%;
 }
 
@@ -59,7 +59,7 @@ body {
 }
 
 .content .nav{
-  width: 250px;
+  width: 300px;
   height: 100%;
   background-color: var(--secondaryColor);
   padding: 10px 15px;
@@ -102,3 +102,29 @@ body {
   padding: 20px;
 }
 
+.auth-section{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content .main-content{
+  width: 100%;
+}
+.wallet,.store,.exchange, .history{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.exchange .action{
+  display: flex;
+  gap: 20px;
+}
+
+.exchange .action button{
+  padding: 5px 30px;
+}

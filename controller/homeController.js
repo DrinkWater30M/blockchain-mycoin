@@ -1,7 +1,11 @@
-function getHomePage(req, res){
-    res.render("index")
+function getLoginPage(req, res){
+    res.render("login", {layout: 'authLayout'})
 }
 
+function getRegisterPage(req, res){
+    res.render("register", {layout: 'authLayout'});
+}
 module.exports = {
-    getHomePage,
+    getLoginPage,
+    getRegisterPage
 }
