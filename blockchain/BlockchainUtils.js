@@ -1,5 +1,9 @@
 const CryptoJS = require('crypto-js');
 const Block = require('./block');
+var EC = require('elliptic').ec;
+var ec = new EC('secp256k1');
+const fs = require("fs");
+const { privateEncrypt } = require('crypto');
 
 class BlockchainUtils{
     claculateHash = (index, previousHash, timestamp, data) => {
@@ -139,6 +143,49 @@ class BlockchainUtils{
         else{
             return prevAdjustmentBlock.difficulty;
         }
+    }
+
+    // create wallet
+    generatePrivateKey = () => {
+        const keyPair = ec.genKeyPair();
+        const privateKey = keyPair.getPrivate();
+        return privateKey.toString(16);
+    }
+
+    // init Wallet
+    initWallet = () => {
+        const privateKeyLocation = process.env.PRIVATE_KEY_LOCATION;
+        if(!fs.existsSync(privateKeyLocation)){
+            console.log("Not exist file path");
+            return;
+        }
+
+        const newPrivateKey = this.generatePrivateKey();
+
+        fs.appendFileSync(privateKeyLocation, "|");
+        fs.appendFileSync(privateKeyLocation, newPrivateKey);
+        return newPrivateKey;
+    }
+
+    // get public key
+    getPublicFromWallet = (privateKey) => {
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        return key.getPublic().encode('hex');
+    }
+
+    // check exist private key in list
+    existPrivateKey(privateKey){
+        const privateKeyLocation = process.env.PRIVATE_KEY_LOCATION;
+        const data = fs.readFileSync(privateKeyLocation, 'utf-8').toString();
+        const privateKeys = data.split('|');
+
+        for(let i = 0; i < privateKeys.length; i++){
+            if(privateKeys[i] == privateKey){
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
