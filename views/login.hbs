@@ -7,11 +7,12 @@
         <p>About us: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.</p>
       </div>
       <div class="by-private-key">
-        <input type="text" class="form-control" id="floatingInput" placeholder="Private Key" />
-        <button type="button" class="btn">Login</button>
+        <input type="text" class="form-control" placeholder="Private Key" />
+        <button type="button" class="btn" onclick="handleLogin()">Login</button>
       </div>
       <div class="by-file">
-        <button type="button" class="btn">Login By File</button>
+        <button type="button" class="btn" onclick="handleLoginByFile()">Login By File</button>
+        <input id="private-key-file" type="file" accept=".txt" style="display: none;"/>
       </div>
       <div class="redirect">
         <a href="/register">
@@ -21,3 +22,70 @@
     </div>
   </div>
 </div>
+<script>
+  // handle when click login button by text
+  function handleLogin(){
+    // check private key input
+    const privateKey = $('.by-private-key input').val();
+    if(!privateKey){
+      alert("The Private Key Input Is Empty.");
+      return;
+    }
+
+    login(privateKey);
+  }
+
+  // handle when click login button by file
+  function handleLoginByFile(){
+    $('#private-key-file').click();
+  }
+
+  // trigger get private key after uploaded txt file
+  function getPrivateKeyFromFile(){
+    // on change when after upload
+    $('#private-key-file').change(function(){
+      const file = this.files[0];
+      
+      if(!file){
+        alert('The upload process error, try again');
+        return;
+      }
+
+      // read file to get private key
+      let reader = new FileReader();
+      reader.onload = function(e){
+          // login by private key
+          const privateKey = e.target.result;
+          login(privateKey);
+      }
+      reader.readAsText(file);
+    })
+  }
+  getPrivateKeyFromFile();
+
+  // login from private key
+  function login(privateKey){
+    console.log(privateKey);
+
+    // call api to login
+    const url = "/wallet/api/login";
+    $.ajax({
+      url: url,
+      method: 'post',
+      data: JSON.stringify({privateKey}),
+      contentType: 'application/json',
+      success: function(res){
+        // save private key to cookie to using over all page
+        Cookies.set('private_key', privateKey);
+      },
+      error: function(res){
+        console.log(res);
+        if(res.status == 400){
+          alert("Invalid Private Key");
+          return;
+        }
+        alert("Server Error, Try Again.");
+      }
+    })
+  }
+</script>

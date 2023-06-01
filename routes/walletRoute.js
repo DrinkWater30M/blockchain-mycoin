@@ -8,4 +8,7 @@ router.get('/', walletController.getWalletPage);
 /* create wallet api . */
 router.get('/api/private-key/create', walletController.createNewWallet);
 
+/* login to wallet api . */
+router.post('/api/login', walletController.login);
+
 module.exports = router;
