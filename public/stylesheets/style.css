@@ -53,6 +53,10 @@ body {
   font-weight: 900;
 }
 
+.left-header a:hover{
+  color: var(--secondaryColor);
+}
+
 .content{
   display: flex;
   height: 100%;
