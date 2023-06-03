@@ -193,3 +193,13 @@ body {
   width: 100%;
   margin-top: 30px;
 }
+
+.coin-store{
+  width: 100%;
+  display: flex;
+  gap: 20px;
+}
+
+.coin-store button{
+  padding: 5px 50px;
+}

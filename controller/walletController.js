@@ -1,4 +1,4 @@
-const { initWallet, existPrivateKey } = require("../blockchain/BlockchainUtils");
+const { initWallet, existPrivateKey, getPublicFromWallet, getBalance } = require("../blockchain/BlockchainUtils");
 
 function getWalletPage(req, res){
     res.render('wallet');
@@ -15,6 +15,18 @@ function createNewWallet(req, res){
     }
 }
 
+function getBalanceWallet(req, res){
+    try{
+        const address = req.query.address;
+        const balance = getBalance(address);
+        res.status(200).json({balance});
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).json({error: "Server error"});
+    }
+}
+
 function login(req, res){
     try{
         const privateKey = req.body.privateKey;
@@ -25,7 +37,8 @@ function login(req, res){
             return;
         }
     
-        res.status(200).json({message: "Success."});
+        const address = getPublicFromWallet(privateKey);
+        res.status(200).json({ privateKey, address });
     }
     catch(error){
         console.log(error);
@@ -37,4 +50,5 @@ module.exports = {
     getWalletPage,
     createNewWallet,
     login,
+    getBalanceWallet,
 }

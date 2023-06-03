@@ -76,7 +76,8 @@
       contentType: 'application/json',
       success: function(res){
         // save private key to cookie to using over all page
-        Cookies.set('private_key', privateKey);
+        Cookies.set('private_key', res.privateKey);
+        Cookies.set('address', res.address);
         window.location.href = '/wallet';
       },
       error: function(res){

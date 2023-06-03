@@ -21,6 +21,15 @@ class Transaction{
     }
 }
 
+class UnspentTxOut{
+    constructor(txOutId, txOutIndex, address, amount){
+        this.txOutId = txOutId;
+        this.txOutIndex = txOutIndex;
+        this.address = address;
+        this.amount = amount;
+    }
+}
+
 const getTransactionId = (transaction) => {
     const txInContent = transaction.txIns.map(txIn => txIn.txOutId + txIn.txOutIndex).reduce((a,b) => a + b, '');
 
@@ -56,5 +65,7 @@ module.exports = {
     TxOut,
     TxIn,
     Transaction,
+    UnspentTxOut,
     getTransactionId,
+    signTxIn,
 };

@@ -1,15 +1,29 @@
 <div class="store">
   <div class="card w-100">
     <div class="card-header">
-      Buy Coin
+      Wallet
     </div>
     <div class="card-body">
-      <div class="d-flex">
-        <h5>Balance:</h5>
-        <span class="ms-2">xxx</span>
+      <div id="address" class="d-flex">
+        <h5>Address:</h5>
+        <span>address</span>
       </div>
+      <div id="balance" class="d-flex">
+        <h5>Balance:</h5>
+        <span>balance</span>
+      </div>
+    </div>
+  </div>
+  <div class="card w-100">
+    <div class="card-header">
+      Buy Coin From Store
+    </div>
+    <div class="card-body">
       <div class="d-flex mt-2">
-        <button type="button" class="btn btn-primary">Buy Coin</button>
+        <div class="coin-store">
+          <input id="amount-coin" type="number" class="form-control" placeholder="Amount" />
+          <button type="button" class="btn btn-primary" onclick="handleBuyCoin()">Buy Coin</button>
+        </div>
       </div>
     </div>
   </div>
@@ -50,3 +64,37 @@
 
   </div>
 </div>
+<script>
+  // handle when click to button buy coin
+  function handleBuyCoin(){
+    const amount = $('#amount-coin').val();
+    if(!amount){
+      alert("Input amount coin, please!");
+      return;
+    }
+
+    if(!confirm(`Buy ${amount} coin, are you sure?`)){
+      return;
+    }
+
+    // call api to buy
+    const url = "/store/api/coin/buy";
+    $.ajax({
+      url: url,
+      method: 'post',
+      headers: {
+        'Authorization': Cookies.get('private_key'),
+      },
+      data: JSON.stringify({amount}),
+      contentType: 'application/json',
+      success: function(res){
+        console.log(res);
+        location.reload();
+      },
+      error: function(res){
+        console.log(res);
+        alert("Server error, try again");
+      }
+    })
+  }
+</script>
