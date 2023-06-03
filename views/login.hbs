@@ -1,10 +1,93 @@
-<div class="card text-center mb-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Login</h5>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-    <a href="#" class="btn btn-primary">Login</a>
-    <a href="/register">Not already wallet? Register here</a>
+<div class="login">
+  <div class="card">
+    <div class="card-body">
+      <h3>Login</h3>
+      <div class="intro">
+        <p>Direction: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.</p>
+        <p>About us: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.</p>
+      </div>
+      <div class="by-private-key">
+        <input type="text" class="form-control" placeholder="Private Key" />
+        <button type="button" class="btn" onclick="handleLogin()">Login</button>
+      </div>
+      <div class="by-file">
+        <button type="button" class="btn" onclick="handleLoginByFile()">Login By File</button>
+        <input id="private-key-file" type="file" accept=".txt" style="display: none;"/>
+      </div>
+      <div class="redirect">
+        <a href="/register">
+          <span>Not already wallet? Create wallet.</span>
+        </a>
+      </div>
+    </div>
   </div>
 </div>
+<script>
+  // handle when click login button by text
+  function handleLogin(){
+    // check private key input
+    const privateKey = $('.by-private-key input').val();
+    if(!privateKey){
+      alert("The Private Key Input Is Empty.");
+      return;
+    }
+
+    login(privateKey);
+  }
+
+  // handle when click login button by file
+  function handleLoginByFile(){
+    $('#private-key-file').click();
+  }
+
+  // trigger get private key after uploaded txt file
+  function getPrivateKeyFromFile(){
+    // on change when after upload
+    $('#private-key-file').change(function(){
+      const file = this.files[0];
+      
+      if(!file){
+        alert('The upload process error, try again');
+        return;
+      }
+
+      // read file to get private key
+      let reader = new FileReader();
+      reader.onload = function(e){
+          // login by private key
+          const privateKey = e.target.result;
+          login(privateKey);
+      }
+      reader.readAsText(file);
+    })
+  }
+  getPrivateKeyFromFile();
+
+  // login from private key
+  function login(privateKey){
+    console.log(privateKey);
+
+    // call api to login
+    const url = "/wallet/api/login";
+    $.ajax({
+      url: url,
+      method: 'post',
+      data: JSON.stringify({privateKey}),
+      contentType: 'application/json',
+      success: function(res){
+        // save private key to cookie to using over all page
+        Cookies.set('private_key', res.privateKey);
+        Cookies.set('address', res.address);
+        window.location.href = '/wallet';
+      },
+      error: function(res){
+        console.log(res);
+        if(res.status == 400){
+          alert("Invalid Private Key");
+          return;
+        }
+        alert("Server Error, Try Again.");
+      }
+    })
+  }
+</script>

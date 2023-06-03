@@ -1,9 +1,58 @@
-<div class="card text-center mb-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Create Wallet</h5>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-    <a href="#" class="btn btn-primary">Created</a>
+<div class="register">
+  <div class="card">
+    <div class="card-body">
+      <h3>Create Wallet</h3>
+      <div class="intro">
+        <p>Direction: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.</p>
+        <p>About us: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.</p>
+      </div>
+      <div class="new-wallet">
+        <button type="button" onclick="handleNewWallet()" class="btn">New Wallet</button>
+      </div>
+      <div class="redirect">
+        <a href="/">
+          <span>Already wallet? Login.</span>
+        </a>
+      </div>
+    </div>
   </div>
 </div>
+<script>
+  // handle click "new wallet"
+  function handleNewWallet(){
+    const url = "/wallet/api/private-key/create";
+    $.ajax({
+      url: url,
+      method: 'get',
+      contentType: 'application/json',
+      success: function(res){
+        console.log(res);
+        
+        // get private from res
+        const privateKey = res.privateKey;
+        download('private_key.txt', privateKey);
+
+        // redirect to login
+        window.location.href = '/';
+      },
+      error: function(res){
+        console.log(res);
+        alert("Server Error, Try Again!");
+      }
+    })
+  }
+
+  // download text file to disk
+  function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+  }
+</script>

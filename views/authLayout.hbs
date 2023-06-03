@@ -1,56 +1,70 @@
 <html>
-  <head>
-    <title>{{title}}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-      rel="stylesheet"
-    />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
-    <link rel="stylesheet" href="/stylesheets/style.css" />
-    <script src="https://kit.fontawesome.com/9e26d2c6bf.js" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-  </head>
-  <body>
-    <div class="main-section">
-      <div class="header">
-        <div class="logo">
-          <a href="/">
-            <i class="fa-solid fa-coins"></i>
-            <span>My Coin</span>
+
+<head>
+  <title>{{title}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+    rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+  <script src="https://kit.fontawesome.com/9e26d2c6bf.js" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+</head>
+
+<body>
+  <div class="main-section">
+    <div class="header">
+      <div class="logo">
+        <a href="/">
+          <i class="fa-solid fa-coins"></i>
+          <span>My Coin</span>
+        </a>
+      </div>
+      <div class="left-header">
+        <div class="notification">
+          <a href="#">
+            <i class="fa-solid fa-bell"></i>
           </a>
         </div>
-        <div class="left-header">
-          <div class="notification">
-            <a href="#">
-              <i class="fa-solid fa-bell"></i>
-            </a>
-          </div>
-          <div class="account">
-            <a href="#">
-              <i class="fa-regular fa-circle-user"></i>
-            </a>
-          </div>
+        <div class="account">
+          <a href="#">
+            <i class="fa-regular fa-circle-user"></i>
+          </a>
         </div>
       </div>
-      <div class="auth-section">
-        {{{body}}}
-      </div>
+    </div>
+    <div class="auth-section">
+      {{{body}}}
+    </div>
     <script>
       // update ui by url
-      function navActive(){
+      function navActive() {
         const path = window.location.href;
         const tabs = document.querySelectorAll('.nav .item');
-        for(let i = 0; i < tabs.length; i++){
-            if(tabs[i].querySelector('a').href == path){
-              tabs[i].classList.add('active');
-              return;
-            }
+        for (let i = 0; i < tabs.length; i++) {
+          if (tabs[i].querySelector('a').href == path) {
+            tabs[i].classList.add('active');
+            return;
+          }
         }
       }
       navActive();
+
+      // check login
+      function checkLogin() {
+        if (Cookies.get('private_key')) {
+          window.location.href = '/wallet';
+        }
+      }
+      checkLogin();
     </script>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-  </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+      crossorigin="anonymous"></script>
+</body>
+
 </html>

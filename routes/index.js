@@ -5,6 +5,7 @@ const walletRoute = require('./walletRoute');
 const storeRoute = require('./storeRoute');
 const exchangeRoute = require('./exchangeRoute');
 const historyRoute = require('./historyRoute');
+const labController = require('../controller/labController');
 
 // home
 router.use('/', homeRoute);
@@ -20,6 +21,9 @@ router.use('/exchange', exchangeRoute);
 
 // wallet
 router.use('/history', historyRoute);
+
+// lab
+router.get('/lab', labController.Test);
 
 
 module.exports = router;
