@@ -18,6 +18,7 @@ class Transaction{
         this.id = id;
         this.txIns = txIns;
         this.txOuts = txOuts;
+        this.dateTime = new Date().toLocaleString();
     }
 }
 

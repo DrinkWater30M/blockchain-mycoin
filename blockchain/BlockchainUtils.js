@@ -295,10 +295,21 @@ class BlockchainUtils {
   // buy coin from store with no fee
   buyCoinFromStore = (address, amount) => {
     try {
-      const txOutId = process.env.STORE_TRANSACTION_ID;
-      const newUnspentOutput = new UnspentTxOut(txOutId, uuidv4(), address, parseInt(amount));
-      this.addToUnspentOutputPool([newUnspentOutput]);
+      // create spent outputs for store
+      const storeTransactionId = process.env.STORE_TRANSACTION_ID;
+      const newSpentOutput = new UnspentTxOut(storeTransactionId, uuidv4(), storeTransactionId, parseInt(amount));
+      this.addToSpentOutputPool([newSpentOutput]);
 
+      // create new transaction from when store send coin to wallet user
+      const txIn = new TxIn(newSpentOutput.txOutId, newSpentOutput.txOutIndex, storeTransactionId);
+      const txOut = new TxOut(address, parseInt(amount));
+      const newTransaction = new Transaction("", [txIn], [txOut]);
+      newTransaction.id = this.getTransactionId(newTransaction);
+      this.addToTransactionPool([newTransaction]);
+
+      // create unspent output after store send coin to wallet user
+      const unspentOutput = new UnspentTxOut(newTransaction.id, 0, address, parseInt(amount));
+      this.addToUnspentOutputPool([unspentOutput]);
       return true;
     } catch (error) {
       console.log(error);
@@ -434,6 +445,37 @@ class BlockchainUtils {
     }
     this.addToUnspentOutputPool(newUnspentOutputs);
   };
+
+  // get transaction history of wallet
+  getTransactionHistoryOfWallet = (address) => {
+    const spentOutputsPool = this.getSpentOutputPool();
+    const transactionsPool = this.getTransactionPool();
+
+    //
+    const transactionsHistory = [];
+    for(const transaction of transactionsPool){
+      const firstTxIn = transaction.txIns[0];
+      const spentOutput = this.findUnspentOutput(firstTxIn.txOutId, firstTxIn.txOutIndex, spentOutputsPool);
+      if(spentOutput && spentOutput.address == address){
+        // this transaction is send type
+        const sentTxOut = transaction.txOuts[0].address != address ? transaction.txOuts[0] : transaction.txOuts[1];
+        transactionsHistory.push({type: "Sent", address: sentTxOut.address, amount: sentTxOut.amount, dateTime: transaction.dateTime});
+      }
+      else{
+        // this transacton is receive type
+        if(transaction.txOuts[0] && transaction.txOuts[0].address == address){
+          transactionsHistory.push({type: "Received", address: spentOutput.address, amount: transaction.txOuts[0].amount, dateTime: transaction.dateTime});
+          continue;
+        }
+        if(transaction.txOuts[1] && transaction.txOuts[1].address == address){
+          transactionsHistory.push({type: "Received", address: spentOutput.address, amount: transaction.txOuts[1].amount, dateTime: transaction.dateTime});
+          continue;
+        }
+      }
+    }
+
+    return transactionsHistory;
+  }
 }
 
 module.exports = new BlockchainUtils();

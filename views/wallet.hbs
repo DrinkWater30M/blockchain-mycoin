@@ -24,29 +24,21 @@
           <tr>
             <th scope="col">STT</th>
             <th scope="col">Type</th>
-            <th scope="col">Address</th>
+            <th scope="col">From/To Address</th>
             <th scope="col">Amount</th>
+            <th scope="col">Date</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="table-success">
-            <th scope="row">1</th>
-            <td>Sent</td>
-            <td>fs8f7s7f89s7f97sf8s9f79s7f98sf9s7f9s9</td>
-            <td>10</td>
+          {{#each transactionHistory}}
+          <tr class="table-primary">
+            <th scope="row" style="width: 20px">{{@index}}</th>
+            <td style="width: 30px">{{this.type}}</td>
+            <td style="max-width: 400px;">{{this.address}}</td>
+            <td style="width: 20px">{{this.amount}}</td>
+            <td style="width: 180px">{{this.dateTime}}</td>
           </tr>
-          <tr class="table-secondary">
-            <th scope="row">2</th>
-            <td>Received</td>
-            <td>f9s88fs789f7s97f89s7f987s8f79s7f98s79</td>
-            <td>20</td>
-          </tr>
-          <tr class="table-secondary">
-            <th scope="row">3</th>
-            <td>Received</td>
-            <td>f9s88fs789f7s97f89s7f987s8f79s7f98s79</td>
-            <td>30</td>
-          </tr>
+          {{/each}}
         </tbody>
       </table>
     </div>
