@@ -6,6 +6,7 @@ const fs = require("fs");
 const { privateEncrypt } = require("crypto");
 const { UnspentTxOut, Transaction, TxIn, TxOut } = require("./transaction");
 const { v4: uuidv4 } = require("uuid");
+const { trace } = require("console");
 
 class BlockchainUtils {
   claculateHash = (index, previousHash, timestamp, data) => {
@@ -470,6 +471,26 @@ class BlockchainUtils {
         if(transaction.txOuts[1] && transaction.txOuts[1].address == address){
           transactionsHistory.push({type: "Received", address: spentOutput.address, amount: transaction.txOuts[1].amount, dateTime: transaction.dateTime});
           continue;
+        }
+      }
+    }
+
+    return transactionsHistory;
+  }
+
+  // get all transactions history
+  getTransactionHistory = () => {
+    const spentOutputsPool = this.getSpentOutputPool();
+    const transactionsPool = this.getTransactionPool();
+
+    //
+    const transactionsHistory = [];
+    for(const transaction of transactionsPool){
+      const firstTxIn = transaction.txIns[0];
+      const spentOutput = this.findUnspentOutput(firstTxIn.txOutId, firstTxIn.txOutIndex, spentOutputsPool);
+      for(const txOut of transaction.txOuts){
+        if(txOut.address != spentOutput.address){
+          transactionsHistory.push({fromAddress: spentOutput.address, toAddress: txOut.address, amount: txOut.amount, dateTime: transaction.dateTime});
         }
       }
     }
