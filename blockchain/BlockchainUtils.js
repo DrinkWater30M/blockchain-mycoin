@@ -4,8 +4,9 @@ var EC = require("elliptic").ec;
 var ec = new EC("secp256k1");
 const fs = require("fs");
 const { privateEncrypt } = require("crypto");
-const { UnspentTxOut, Transaction } = require("./transaction");
+const { UnspentTxOut, Transaction, TxIn, TxOut } = require("./transaction");
 const { v4: uuidv4 } = require("uuid");
+const { trace } = require("console");
 
 class BlockchainUtils {
   claculateHash = (index, previousHash, timestamp, data) => {
@@ -177,7 +178,8 @@ class BlockchainUtils {
   // get public key
   getPublicFromWallet = (privateKey) => {
     const key = ec.keyFromPrivate(privateKey, "hex");
-    return key.getPublic().encode("hex");
+    const publicKey = key.getPublic().encode("hex");
+    return publicKey;
   };
 
   // check exist private key in list
@@ -195,33 +197,120 @@ class BlockchainUtils {
     return false;
   }
 
-  // get current transaction pool
-  getTransactionPool = () => {
+  // check exist private key in list
+  existPublicKey(address) {
+    const privateKeyLocation = process.env.PRIVATE_KEY_LOCATION;
+    const data = fs.readFileSync(privateKeyLocation, "utf-8").toString();
+    const privateKeys = data.split("|");
+
+    for (const privateKey of privateKeys) {
+      if (privateKey && this.getPublicFromWallet(privateKey) == address) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // get unspent output pool
+  getUnspentOutputPool = () => {
     const unspentOutputLocation = process.env.UNSPENT_OUTPUT_POOL_LOCATION;
     let data = fs.readFileSync(unspentOutputLocation);
-    try{
-        const jsonData = JSON.parse(data);
-        return jsonData;
-    }
-    catch{
-        return [];
+    try {
+      const jsonData = JSON.parse(data);
+      return jsonData;
+    } catch {
+      return [];
     }
   };
 
-  // add a transaction to transaction pool
-  addToTransactionPool = (transaction) => {
-    const transactionPool = this.getTransactionPool();
-    const newTransactionPool = [...transactionPool, transaction];
+  // add a unspent output to pool
+  addToUnspentOutputPool = (unspentOutputs) => {
+    const unspentOutputPool = this.getUnspentOutputPool();
+    const newData = [...unspentOutputPool, ...unspentOutputs];
 
     const unspentOutputLocation = process.env.UNSPENT_OUTPUT_POOL_LOCATION;
-    fs.writeFileSync(unspentOutputLocation, JSON.stringify(newTransactionPool));
+    fs.writeFileSync(unspentOutputLocation, JSON.stringify(newData));
+  };
+
+  // transfer unspent outputs to spent outputs
+  transferUnspentOutputsToSpentOutputs = (unspentOutputs) => {
+    // remove unspent outputs in pool
+    const unspentOutputPool = this.getUnspentOutputPool();
+    let newData = unspentOutputPool;
+    for (const unspentOutput of unspentOutputs) {
+      console.log(unspentOutput)
+      console.log(newData);
+      newData = newData.filter(un => un.txOutId != unspentOutput.txOutId || un.txOutIndex != unspentOutput.txOutIndex);
+    }
+
+    const unspentOutputLocation = process.env.UNSPENT_OUTPUT_POOL_LOCATION;
+    fs.writeFileSync(unspentOutputLocation, JSON.stringify(newData));
+
+    // add unspent outputs to spent output pool
+    this.addToSpentOutputPool(unspentOutputs);
+  };
+
+  // get spent output pool
+  getSpentOutputPool = () => {
+    const spentOutputLocation = process.env.SPENT_OUTPUT_POOL_LOCATION;
+    let data = fs.readFileSync(spentOutputLocation);
+    try {
+      const jsonData = JSON.parse(data);
+      return jsonData;
+    } catch {
+      return [];
+    }
+  };
+
+  // add spent outputs to pool
+  addToSpentOutputPool = (spentOutputs) => {
+    const spentOutputPool = this.getSpentOutputPool();
+    const newData = [...spentOutputPool, ...spentOutputs];
+
+    const spentOutputLocation = process.env.SPENT_OUTPUT_POOL_LOCATION;
+    fs.writeFileSync(spentOutputLocation, JSON.stringify(newData));
+  };
+
+  // get transaction pool
+  getTransactionPool = () => {
+    const transactionPoolLocation = process.env.TRANSACTION_POOL_LOCATION;
+    let data = fs.readFileSync(transactionPoolLocation);
+    try {
+      const jsonData = JSON.parse(data);
+      return jsonData;
+    } catch {
+      return [];
+    }
+  };
+
+  // add a unspent output to pool
+  addToTransactionPool = (transactions) => {
+    const transactionPool = this.getTransactionPool();
+    const newData = [...transactionPool, ...transactions];
+
+    const transactionPoolLocation = process.env.TRANSACTION_POOL_LOCATION;
+    fs.writeFileSync(transactionPoolLocation, JSON.stringify(newData));
   };
 
   // buy coin from store with no fee
   buyCoinFromStore = (address, amount) => {
     try {
-      const newTransacton = new UnspentTxOut("xxx", "yyy", address, amount);
-      this.addToTransactionPool(newTransacton);
+      // create spent outputs for store
+      const storeTransactionId = process.env.STORE_TRANSACTION_ID;
+      const newSpentOutput = new UnspentTxOut(storeTransactionId, uuidv4(), storeTransactionId, parseInt(amount));
+      this.addToSpentOutputPool([newSpentOutput]);
+
+      // create new transaction from when store send coin to wallet user
+      const txIn = new TxIn(newSpentOutput.txOutId, newSpentOutput.txOutIndex, storeTransactionId);
+      const txOut = new TxOut(address, parseInt(amount));
+      const newTransaction = new Transaction("", [txIn], [txOut]);
+      newTransaction.id = this.getTransactionId(newTransaction);
+      this.addToTransactionPool([newTransaction]);
+
+      // create unspent output after store send coin to wallet user
+      const unspentOutput = new UnspentTxOut(newTransaction.id, 0, address, parseInt(amount));
+      this.addToUnspentOutputPool([unspentOutput]);
       return true;
     } catch (error) {
       console.log(error);
@@ -230,19 +319,183 @@ class BlockchainUtils {
   };
 
   // find unspent output of wallet
-  findUnspenOutputs = (address) => {
-    const transactionPool = this.getTransactionPool();
+  findUnspentOutputs = (address) => {
+    const unspentOutputPool = this.getUnspentOutputPool();
 
-    const unspentOutputs = transactionPool.filter(un => un.address == address);
+    const unspentOutputs = unspentOutputPool.filter((un) => un.address == address);
     return unspentOutputs;
-  }
+  };
 
   // calc balance of wallet
   getBalance = (address) => {
-    const unspentOutputs = this.findUnspenOutputs(address);
+    const unspentOutputs = this.findUnspentOutputs(address);
     const totalAmount = unspentOutputs.reduce((prev, cur) => prev + parseInt(cur.amount), 0);
-    
+
     return totalAmount;
+  };
+
+  // generate transaction id from inputs and outputs
+  getTransactionId = (transaction) => {
+    const txInContent = transaction.txIns.map((txIn) => txIn.txOutId + txIn.txOutIndex).reduce((a, b) => a + b, "");
+
+    const txOutContent = transaction.txOuts.map((txOut) => txOut.address + txOut.amount).reduce((a, b) => a + b, "");
+
+    return CryptoJS.SHA256(txInContent + txOutContent).toString();
+  };
+
+  // find a unspent output from unspent outputs
+  findUnspentOutput = (txOutId, txOutIndex, aUnspentTxOuts) => {
+    const unspentOutput = aUnspentTxOuts.find((un) => un.txOutId == txOutId && un.txOutIndex == txOutIndex);
+    return unspentOutput;
+  };
+
+  // sign a transaction
+  signTxIn = (transaction, txInIndex, privateKey, aUnspentTxOuts) => {
+    const txIn = transaction.txIns[txInIndex];
+
+    const dataToSign = transaction.id;
+    const referencedUnspentTxOut = this.findUnspentOutput(txIn.txOutId, txIn.txOutIndex, aUnspentTxOuts);
+    if (referencedUnspentTxOut == null) {
+      console.log("Could not find referenced txOut");
+      throw Error();
+    }
+
+    const referencedAddress = referencedUnspentTxOut.address;
+
+    if (this.getPublicFromWallet(privateKey) != referencedAddress) {
+      console.log("Not match the address");
+      throw Error();
+    }
+
+    const key = ec.keyFromPrivate(privateKey, "hex");
+    const derSignature = key.sign(dataToSign).toDER();
+    const derBuffer = Buffer.from(derSignature, "binary");
+    const signature = derBuffer.toString("hex");
+
+    return signature;
+  };
+
+  // find unspent output for amount
+  findUnspentOutputsForAmount = (amount, myUnspentTxOuts) => {
+    let currentAmount = 0;
+    const includeUnspentTxOuts = [];
+    for (const unspentTxOut of myUnspentTxOuts) {
+      includeUnspentTxOuts.push(unspentTxOut);
+      currentAmount += parseInt(unspentTxOut.amount);
+      if (currentAmount >= amount) {
+        const leftOverAmount = currentAmount - amount;
+        return { unspentOutputsForAmount: includeUnspentTxOuts, leftOverAmount };
+      }
+    }
+  };
+
+  // generate transaction
+  generateTransaction = (privateKey, fromAddress, toAddress, amount) => {
+    // get unspent output to create txinputs
+    const unspentOutputs = this.findUnspentOutputs(fromAddress);
+    const infoAboutUnspentOutputs = this.findUnspentOutputsForAmount(amount, unspentOutputs);
+    const unspentOutputsForAmount = infoAboutUnspentOutputs.unspentOutputsForAmount;
+    const leftOverAmount = infoAboutUnspentOutputs.leftOverAmount;
+
+    // create transaction inputs
+    const txIns = [];
+    for (const unspentOutput of unspentOutputsForAmount) {
+      const txIn = new TxIn(unspentOutput.txOutId, unspentOutput.txOutIndex, "");
+      txIns.push(txIn);
+    }
+
+    // create transaction outputs
+    const txOutForToAddress = new TxOut(toAddress, amount);
+    const txOuts = [txOutForToAddress];
+    if (leftOverAmount > 0) {
+      const txOutForFromAddress = new TxOut(fromAddress, leftOverAmount);
+      txOuts.push(txOutForFromAddress);
+    }
+
+    // create new transaction
+    const newTransaction = new Transaction("", txIns, txOuts);
+    newTransaction.id = this.getTransactionId(newTransaction);
+
+    // sign for txin in transaction
+    for (let i = 0; i < newTransaction.txIns.length; i++) {
+      newTransaction.txIns[i].signature = this.signTxIn(newTransaction, i, privateKey, unspentOutputs);
+    }
+
+    // handle data after create new transaction
+    this.storeData(newTransaction, unspentOutputsForAmount);
+  };
+
+  // handle store data to file
+  storeData = (newTransaction, unSpentOutputs) => {
+    // store new transaction
+    this.addToTransactionPool([newTransaction]);
+
+    // transfer unspent outputs was used to spent outputs
+    this.transferUnspentOutputsToSpentOutputs(unSpentOutputs);
+
+    // store new unspent outputs
+    const newUnspentOutputs = [];
+    for (let i = 0; i < newTransaction.txOuts.length; i++) {
+      const newUnspentOutput = new UnspentTxOut(
+        newTransaction.id,
+        i,
+        newTransaction.txOuts[i].address,
+        newTransaction.txOuts[i].amount
+      );
+      newUnspentOutputs.push(newUnspentOutput);
+    }
+    this.addToUnspentOutputPool(newUnspentOutputs);
+  };
+
+  // get transaction history of wallet
+  getTransactionHistoryOfWallet = (address) => {
+    const spentOutputsPool = this.getSpentOutputPool();
+    const transactionsPool = this.getTransactionPool();
+
+    //
+    const transactionsHistory = [];
+    for(const transaction of transactionsPool){
+      const firstTxIn = transaction.txIns[0];
+      const spentOutput = this.findUnspentOutput(firstTxIn.txOutId, firstTxIn.txOutIndex, spentOutputsPool);
+      if(spentOutput && spentOutput.address == address){
+        // this transaction is send type
+        const sentTxOut = transaction.txOuts[0].address != address ? transaction.txOuts[0] : transaction.txOuts[1];
+        transactionsHistory.push({type: "Sent", address: sentTxOut.address, amount: sentTxOut.amount, dateTime: transaction.dateTime});
+      }
+      else{
+        // this transacton is receive type
+        if(transaction.txOuts[0] && transaction.txOuts[0].address == address){
+          transactionsHistory.push({type: "Received", address: spentOutput.address, amount: transaction.txOuts[0].amount, dateTime: transaction.dateTime});
+          continue;
+        }
+        if(transaction.txOuts[1] && transaction.txOuts[1].address == address){
+          transactionsHistory.push({type: "Received", address: spentOutput.address, amount: transaction.txOuts[1].amount, dateTime: transaction.dateTime});
+          continue;
+        }
+      }
+    }
+
+    return transactionsHistory;
+  }
+
+  // get all transactions history
+  getTransactionHistory = () => {
+    const spentOutputsPool = this.getSpentOutputPool();
+    const transactionsPool = this.getTransactionPool();
+
+    //
+    const transactionsHistory = [];
+    for(const transaction of transactionsPool){
+      const firstTxIn = transaction.txIns[0];
+      const spentOutput = this.findUnspentOutput(firstTxIn.txOutId, firstTxIn.txOutIndex, spentOutputsPool);
+      for(const txOut of transaction.txOuts){
+        if(txOut.address != spentOutput.address){
+          transactionsHistory.push({fromAddress: spentOutput.address, toAddress: txOut.address, amount: txOut.amount, dateTime: transaction.dateTime});
+        }
+      }
+    }
+
+    return transactionsHistory;
   }
 }
 

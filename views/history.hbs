@@ -1,5 +1,6 @@
 <div class="history">
   <dir class="card p-3">
+    <h3 style="text-align: center;">All Transactions History In MYCOIN System</h3>
     <table class="table table-hover">
       <thead>
         <tr>
@@ -11,29 +12,15 @@
         </tr>
       </thead>
       <tbody>
+        {{#each transactionHistory}}
         <tr class="table-success">
-          <th scope="row">1</th>
-          <td>sfsffs89f7s9f79s87f89s797f89s78fsf789</td>
-          <td>fs8f7s7f89s7f97sf8s9f79s7f98sf9s7f9s9</td>
-          <td>10</td>
-          <td>29/05/2023</td>
+          <th scope="row">{{@index}}</th>
+          <td style="max-width: 400px">{{this.fromAddress}}</td>
+          <td style="max-width: 400px">{{this.toAddress}}</td>
+          <td>{{this.amount}}</td>
+          <td>{{this.dateTime}}</td>
         </tr>
-        <tr class="table-secondary">
-          <th scope="row">2</th>
-          <td>f8s98f09s8f098s08f0s8fs890f89s08f90sf</td>
-          <td>f9s88fs789f7s97f89s7f987s8f79s7f98s79</td>
-          <td>20</td>
-          <td>29/05/2023</td>
-
-        </tr>
-        <tr class="table-secondary">
-          <th scope="row">3</th>
-          <td>f8s98f9s89f0s8f0989s08f9s89f8s0f809fs</td>
-          <td>f9s88fs789f7s97f89s7f987s8f79s7f98s79</td>
-          <td>30</td>
-          <td>29/05/2023</td>
-
-        </tr>
+        {{/each}}
       </tbody>
     </table>
   </dir>

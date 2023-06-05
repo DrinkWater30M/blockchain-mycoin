@@ -1,7 +1,17 @@
-const { initWallet, existPrivateKey, getPublicFromWallet, getBalance } = require("../blockchain/BlockchainUtils");
+const { initWallet, existPrivateKey, getPublicFromWallet, getBalance, getTransactionHistoryOfWallet } = require("../blockchain/BlockchainUtils");
 
 function getWalletPage(req, res){
-    res.render('wallet');
+    try{
+        const address = req.cookies.address;
+        const transactionHistory = getTransactionHistoryOfWallet(address);
+        console.log(transactionHistory);
+        res.render('wallet', {transactionHistory});
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).json({error: "Server error, try again"});
+    }
+
 }
 
 function createNewWallet(req, res){

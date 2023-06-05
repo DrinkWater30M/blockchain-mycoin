@@ -20,18 +20,69 @@
     </div>
     <div class="card-body">
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingInput" placeholder="To Address" />
-        <label for="floatingInput">To Address</label>
+        <input type="text" class="form-control" id="address-receiver" placeholder="To Address" />
+        <label for="address-receiver">To Address</label>
       </div>
       <div class="form-floating mb-3">
-        <input type="number" class="form-control" id="floatingInput" placeholder="Amount" />
-        <label for="floatingInput">Amount</label>
+        <input type="number" class="form-control" id="amount-receiver" placeholder="Amount" />
+        <label for="amount-receiver">Amount</label>
       </div>
       <div class="action">
-        <button type="button" class="btn btn-primary"> Send </button>
-        <button type="button" class="btn btn-light">Reset</button>
+        <button type="button" class="btn btn-primary" onclick="send()"> Send </button>
+        <button type="button" class="btn btn-light" onclick="reset()">Reset</button>
       </div>
     </div>
 
   </div>
 </div>
+<script>
+  // handle reset when click reset button
+  function reset(){
+    $('#address-receiver').val("");
+    $('#amount-receiver').val("");
+  }
+
+  // handle send coin when click send button
+  function send(){
+    const toAddress = $('#address-receiver').val();
+    const amount = $('#amount-receiver').val();
+
+    if(!toAddress || !amount){
+      alert("Address or amount is empty.");
+      return;
+    }
+
+    if(!confirm(`Send ${amount} coint to address: ${toAddress}`)){
+      return;
+    }
+
+    // call api to send coin
+    const url = "/exchange/api/coin/send";
+    const data = {
+      privateKey: Cookies.get('private_key'),
+      toAddress,
+      amount
+    }
+    $.ajax({
+      url: url,
+      method: 'post',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
+      success: function(res){
+        console.log(res);
+        window.location.reload();
+      },
+      error: function(xhr, status, error){
+        const resData = xhr.responseJSON;
+        if(resData.code == 0){
+          alert('Not enough coin to send.');
+          return;
+        }
+        if(resData.code == 1){
+          alert('Invalid address receiver.');
+          return;
+        }
+      }
+    })
+  }
+</script>
