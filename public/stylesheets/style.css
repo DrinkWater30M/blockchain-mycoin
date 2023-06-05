@@ -27,6 +27,8 @@ body {
   padding: 10px 50px;
   width: 100%;
   background-color: var(--primaryColor);
+  position: fixed;
+  z-index: 10;
 }
 
 .logo a{
@@ -60,10 +62,11 @@ body {
 .content{
   display: flex;
   height: 100%;
+  margin-top: 60px;
 }
 
 .content .nav{
-  width: 300px;
+  width: 250px;
   height: 100%;
   background-color: var(--secondaryColor);
   padding: 10px 15px;
@@ -71,6 +74,8 @@ body {
   flex-direction: column;
   justify-content: start;
   align-items: center;
+  position: fixed;
+  z-index: 5;
 }
 
 .content .nav .item{
@@ -104,6 +109,7 @@ body {
 
 .content .main-content{
   padding: 20px;
+  margin-left: 250px;
 }
 
 .auth-section{
